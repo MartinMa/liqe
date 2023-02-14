@@ -112,7 +112,7 @@ test(
   [
     {
       path: 'name',
-      query: /(foo)/,
+      query: /(fo)/,
     },
   ],
 );
@@ -127,7 +127,7 @@ test(
   [
     {
       path: 'name',
-      query: /(foo)/,
+      query: /(fo)/,
     },
   ],
 );
