@@ -7,6 +7,10 @@ const testRule = test.macro((t, regex: RegExp) => {
   t.deepEqual(convertWildcardToRegex(t.title), regex);
 });
 
-test('*', testRule, /(.+?)/);
-test('foo*bar', testRule, /foo(.+?)bar/);
-test('foo***bar', testRule, /foo(.+?)bar/);
+test('*', testRule, /(.*?)/);
+test('?', testRule, /(.)/);
+test('foo*bar', testRule, /foo(.*?)bar/);
+test('foo***bar', testRule, /foo(.*?)bar/);
+test('foo*bar*', testRule, /foo(.*?)bar(.*?)/);
+test('foo?bar', testRule, /foo(.)bar/);
+test('foo???bar', testRule, /foo(.)(.)(.)bar/);
