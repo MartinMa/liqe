@@ -65,7 +65,8 @@
     "compile-parser": "nearleyc src/grammar.ne --out ./src/grammar.ts && sed -i '' 's/loc?: number/loc: number/g' src/grammar.ts",
     "dev": "tsc --watch",
     "lint": "eslint ./src ./test && tsc --noEmit",
-    "test": "NODE_ENV=test ava --serial --verbose"
+    "test": "NODE_ENV=test ava --serial --verbose",
+    "test-win": "set NODE_ENV=test && ava --serial --verbose"
   },
   "typings": "./dist/src/Liqe.d.ts",
   "version": "1.0.0"

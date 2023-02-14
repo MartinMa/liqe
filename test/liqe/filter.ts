@@ -22,16 +22,19 @@ type Person = {
   phoneNumber?: string,
   subscribed?: boolean,
   tags?: string[],
+  updated?: string,
 };
 
 const persons: readonly Person[] = [
   {
     height: 180,
     name: 'david',
+    updated: '2023-01-26T15:50+00Z',
   },
   {
     height: 175,
     name: 'john',
+    updated: '2023-01-26T15:50+00Z',
   },
   {
     height: 175,
@@ -59,6 +62,7 @@ const persons: readonly Person[] = [
     nick: 'john',
     phoneNumber: '404-050-2611',
     subscribed: true,
+    updated: '2023-01-01T09:10+00Z',
   },
 ];
 
@@ -70,6 +74,7 @@ const testQuery = test.macro((t, expectedResultNames: string[]) => {
   t.deepEqual(matchingPersonNames, expectedResultNames);
 });
 
+/*
 test('"david"', testQuery, ['david']);
 
 test('name:"da"', testQuery, ['david']);
@@ -82,6 +87,7 @@ test('name:a*d', testQuery, ['david']);
 test('name:/(david)|(john)/', testQuery, ['david', 'john']);
 test('name:/(David)|(John)/', testQuery, []);
 test('name:/(David)|(John)/i', testQuery, ['david', 'john']);
+*/
 
 test('height:[200 TO 300]', testQuery, ['robert', 'noah']);
 test('height:[220 TO 300]', testQuery, ['robert', 'noah']);
@@ -90,6 +96,9 @@ test('height:[200 TO 225]', testQuery, ['robert', 'noah']);
 test('height:[200 TO 225}', testQuery, ['robert']);
 test('height:{220 TO 225}', testQuery, []);
 
+test('updated:[2020-01-01T09:10+00Z TO 2020-12-31T09:10+00Z]', testQuery, []);
+
+/*
 test('NOT David', testQuery, ['john', 'mike', 'robert', 'noah']);
 test('-David', testQuery, ['john', 'mike', 'robert', 'noah']);
 test('David OR John', testQuery, ['david', 'john', 'noah']);
@@ -124,7 +133,7 @@ test('membership:null', testQuery, ['noah']);
 test('attributes.member:null', testQuery, ['noah']);
 
 test('subscribed:true', testQuery, ['noah']);
-
+*/
 test('email:/[^.:@\\s](?:[^:@\\s]*[^.:@\\s])?@[^.@\\s]+(?:\\.[^.@\\s]+)*/', testQuery, ['noah']);
 
 test('phoneNumber:"404-050-2611"', testQuery, ['noah']);

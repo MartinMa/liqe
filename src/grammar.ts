@@ -76,6 +76,33 @@ const grammar: Grammar = {
     {"name": "strescape", "symbols": [{"literal":"u"}, /[a-fA-F0-9]/, /[a-fA-F0-9]/, /[a-fA-F0-9]/, /[a-fA-F0-9]/], "postprocess": 
         (data) => data.join('')
         },
+    {"name": "range_term_block", "symbols": [/[^+|"()'\\\s]/]},
+    {"name": "range_term_block$string$1", "symbols": [{"literal":"\\"}, {"literal":"+"}], "postprocess": (d) => d.join('')},
+    {"name": "range_term_block", "symbols": ["range_term_block$string$1"]},
+    {"name": "range_term_block$string$2", "symbols": [{"literal":"\\"}, {"literal":"|"}], "postprocess": (d) => d.join('')},
+    {"name": "range_term_block", "symbols": ["range_term_block$string$2"]},
+    {"name": "range_term_block$string$3", "symbols": [{"literal":"\\"}, {"literal":"\""}], "postprocess": (d) => d.join('')},
+    {"name": "range_term_block", "symbols": ["range_term_block$string$3"]},
+    {"name": "range_term_block$string$4", "symbols": [{"literal":"\\"}, {"literal":"("}], "postprocess": (d) => d.join('')},
+    {"name": "range_term_block", "symbols": ["range_term_block$string$4"]},
+    {"name": "range_term_block$string$5", "symbols": [{"literal":"\\"}, {"literal":")"}], "postprocess": (d) => d.join('')},
+    {"name": "range_term_block", "symbols": ["range_term_block$string$5"]},
+    {"name": "range_term_block$string$6", "symbols": [{"literal":"\\"}, {"literal":"'"}], "postprocess": (d) => d.join('')},
+    {"name": "range_term_block", "symbols": ["range_term_block$string$6"]},
+    {"name": "range_term_block$string$7", "symbols": [{"literal":"\\"}, {"literal":"\\"}], "postprocess": (d) => d.join('')},
+    {"name": "range_term_block", "symbols": ["range_term_block$string$7"]},
+    {"name": "range_term$ebnf$1", "symbols": ["range_term_block"]},
+    {"name": "range_term$ebnf$1", "symbols": ["range_term$ebnf$1", "range_term_block"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "range_term", "symbols": ["range_term$ebnf$1"], "postprocess": 
+        (data) => {
+          const join = data[0].join('');
+          if (/^-?\d+(\.\d+)?$/.test(join)) {
+            return parseFloat(join);
+          } else {
+            return join;
+          }
+        }
+        },
     {"name": "logical_expression", "symbols": ["two_op_logical_expression"], "postprocess": id},
     {"name": "two_op_logical_expression", "symbols": ["pre_two_op_logical_expression", "boolean_operator", "post_one_op_logical_expression"], "postprocess":  (data) => ({
           type: 'LogicalExpression',
@@ -251,7 +278,7 @@ const grammar: Grammar = {
     {"name": "expression", "symbols": ["sqstring"], "postprocess": (data, start) => ({type: 'Tag', expression: {location: {start, end: start + data.join('').length + 2}, type: 'LiteralExpression', quoted: true, quotes: 'single', value: data.join('')}})},
     {"name": "expression", "symbols": ["dqstring"], "postprocess": (data, start) => ({type: 'Tag', expression: {location: {start, end: start + data.join('').length + 2}, type: 'LiteralExpression', quoted: true, quotes: 'double', value: data.join('')}})},
     {"name": "range$string$1", "symbols": [{"literal":" "}, {"literal":"T"}, {"literal":"O"}, {"literal":" "}], "postprocess": (d) => d.join('')},
-    {"name": "range", "symbols": ["range_open", "decimal", "range$string$1", "decimal", "range_close"], "postprocess":  (data, start) => {
+    {"name": "range", "symbols": ["range_open", "range_term", "range$string$1", "range_term", "range_close"], "postprocess":  (data, start) => {
           return {
             location: {
               start,

@@ -37,6 +37,29 @@ strescape -> ["\\/bfnrt] {% id %}
     (data) => data.join('')
 %}
 
+# An individual term may contain any possible character with certain characters requiring
+# escaping using a backslash. The following characters will need to be escaped in terms and
+# phrases: + | " ( ) ' \
+range_term_block -> [^+|"()'\\\s]
+    | "\\+"
+    | "\\|"
+    | "\\\""
+    | "\\("
+    | "\\)"
+    | "\\'"
+    | "\\\\"
+
+range_term -> range_term_block:+ {%
+  (data) => {
+    const join = data[0].join('');
+    if (/^-?\d+(\.\d+)?$/.test(join)) {
+      return parseFloat(join);
+    } else {
+      return join;
+    }
+  }
+%}
+
 logical_expression -> two_op_logical_expression {% id %}
 
 two_op_logical_expression ->
@@ -237,7 +260,7 @@ expression ->
   | dqstring {% (data, start) => ({type: 'Tag', expression: {location: {start, end: start + data.join('').length + 2}, type: 'LiteralExpression', quoted: true, quotes: 'double', value: data.join('')}}) %}
 
 range ->
-    range_open decimal " TO " decimal range_close {% (data, start) => {
+    range_open range_term " TO " range_term range_close {% (data, start) => {
     return {
       location: {
         start,

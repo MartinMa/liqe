@@ -21,6 +21,8 @@ export const testRange = (value: unknown, range: Range): boolean => {
     }
 
     return true;
+  } else if (typeof value === 'string') {
+    // dd
   }
 
   // @todo handle non-numeric ranges -- https://github.com/gajus/liqe/issues/3
