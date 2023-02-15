@@ -149,3 +149,5 @@ test('(name:fox OR name:"foo bar" AND nick:"old dog")', testQuery, ['foo bar']);
 test('(name:fox OR (name:"foo bar" AND nick:"old dog"))', testQuery, ['fox', 'foo bar']);
 
 test('404*', testQuery, ['noah']);
+test('(404*)', testQuery, ['noah']);
+test('(*404*)', testQuery, ['noah']);

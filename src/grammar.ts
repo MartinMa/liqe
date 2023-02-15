@@ -318,7 +318,7 @@ const grammar: Grammar = {
           (d[3] || "")
           },
     {"name": "unquoted_value$ebnf$5", "symbols": []},
-    {"name": "unquoted_value$ebnf$5", "symbols": ["unquoted_value$ebnf$5", /[a-zA-Z\.\-_*?@#$]/], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "unquoted_value$ebnf$5", "symbols": ["unquoted_value$ebnf$5", /[0-9a-zA-Z\.\-_*?@#$]/], "postprocess": (d) => d[0].concat([d[1]])},
     {"name": "unquoted_value", "symbols": [/[a-zA-Z_*?@#$]/, "unquoted_value$ebnf$5"], "postprocess": d => d[0] + d[1].join('')}
   ],
   ParserStart: "main",
