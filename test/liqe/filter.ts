@@ -131,3 +131,5 @@ test('phoneNumber:"404-050-2611"', testQuery, ['noah']);
 test('phoneNumber:404', testQuery, ['noah']);
 
 test('balance:364', testQuery, ['noah']);
+
+test('404*', testQuery, ['noah']);
