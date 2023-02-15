@@ -198,8 +198,7 @@ field ->
   | dqstring {% (data, start) => ({type: 'LiteralExpression', name: data[0], quoted: true, quotes: 'double', location: {start, end: start + data[0].length + 2}}) %}
 
 expression ->
-    decimal {% (data, start) => ({type: 'Tag', expression: {location: {start, end: start + data.join('').length}, type: 'LiteralExpression', quoted: false, value: Number(data.join(''))}}) %}
-  | regex {% (data, start) => ({type: 'Tag', expression: {location: {start, end: start + data.join('').length}, type: 'RegexExpression', value: data.join('')}}) %}
+    regex {% (data, start) => ({type: 'Tag', expression: {location: {start, end: start + data.join('').length}, type: 'RegexExpression', value: data.join('')}}) %}
   | range {% (data) => data[0] %}
   | unquoted_value {% (data, start, reject) => {
     const value = data.join('');
@@ -216,6 +215,8 @@ expression ->
       normalizedValue = false;
     } else if (value === 'null') {
       normalizedValue = null;
+    } else if (/^-?\d+(\.\d+)?$/.test(value)) {
+      normalizedValue = parseFloat(value);
     } else {
       normalizedValue = value;
     }
@@ -292,4 +293,11 @@ regex_flags ->
   [gmiyusd]:+ {% d => d[0].join('') %}
 
 unquoted_value ->
-  [a-zA-Z_*?@#$] [a-zA-Z\.\-_*?@#$]:* {% d => d[0] + d[1].join('') %}
+  "-":? [0-9]:+ ("." [0-9]:+):? [a-zA-Z\.\-_*?@#$]:* {%
+    (d) =>
+      (d[0] || "") +
+      d[1].join("") +
+      (d[2] ? "."+d[2][1].join("") : "") +
+      (d[3] || "")
+  %}
+  | [a-zA-Z_*?@#$] [0-9a-zA-Z\.\-_*?@#$]:* {% d => d[0] + d[1].join('') %}

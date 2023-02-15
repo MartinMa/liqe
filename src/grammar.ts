@@ -213,7 +213,6 @@ const grammar: Grammar = {
     {"name": "field", "symbols": [/[_a-zA-Z$]/, "field$ebnf$1"], "postprocess": (data, start) => ({type: 'LiteralExpression', name: data[0] + data[1].join(''), quoted: false, location: {start, end: start + (data[0] + data[1].join('')).length}})},
     {"name": "field", "symbols": ["sqstring"], "postprocess": (data, start) => ({type: 'LiteralExpression', name: data[0], quoted: true, quotes: 'single', location: {start, end: start + data[0].length + 2}})},
     {"name": "field", "symbols": ["dqstring"], "postprocess": (data, start) => ({type: 'LiteralExpression', name: data[0], quoted: true, quotes: 'double', location: {start, end: start + data[0].length + 2}})},
-    {"name": "expression", "symbols": ["decimal"], "postprocess": (data, start) => ({type: 'Tag', expression: {location: {start, end: start + data.join('').length}, type: 'LiteralExpression', quoted: false, value: Number(data.join(''))}})},
     {"name": "expression", "symbols": ["regex"], "postprocess": (data, start) => ({type: 'Tag', expression: {location: {start, end: start + data.join('').length}, type: 'RegexExpression', value: data.join('')}})},
     {"name": "expression", "symbols": ["range"], "postprocess": (data) => data[0]},
     {"name": "expression", "symbols": ["unquoted_value"], "postprocess":  (data, start, reject) => {
@@ -231,6 +230,8 @@ const grammar: Grammar = {
             normalizedValue = false;
           } else if (value === 'null') {
             normalizedValue = null;
+          } else if (/^-?\d+(\.\d+)?$/.test(value)) {
+            normalizedValue = parseFloat(value);
           } else {
             normalizedValue = value;
           }
@@ -252,26 +253,26 @@ const grammar: Grammar = {
     {"name": "expression", "symbols": ["dqstring"], "postprocess": (data, start) => ({type: 'Tag', expression: {location: {start, end: start + data.join('').length + 2}, type: 'LiteralExpression', quoted: true, quotes: 'double', value: data.join('')}})},
     {"name": "range$string$1", "symbols": [{"literal":" "}, {"literal":"T"}, {"literal":"O"}, {"literal":" "}], "postprocess": (d) => d.join('')},
     {"name": "range", "symbols": ["range_open", "decimal", "range$string$1", "decimal", "range_close"], "postprocess":  (data, start) => {
-          return {
-            location: {
-              start,
-            },
-            type: 'Tag',
-            expression: {
-              location: {
-                start: data[0].location.start,
-                end: data[4].location.start + 1,
-              },
-              type: 'RangeExpression',
-              range: {
-                min: data[1],
-                minInclusive: data[0].inclusive,
-                maxInclusive: data[4].inclusive,
-                max: data[3],
-              }
-            }
+      return {
+        location: {
+          start,
+        },
+        type: 'Tag',
+        expression: {
+          location: {
+            start: data[0].location.start,
+            end: data[4].location.start + 1,
+          },
+          type: 'RangeExpression',
+          range: {
+            min: data[1],
+            minInclusive: data[0].inclusive,
+            maxInclusive: data[4].inclusive,
+            max: data[3],
           }
-        } },
+        }
+      }
+    } },
     {"name": "range_open", "symbols": [{"literal":"["}], "postprocess": (data, start) => ({location: {start}, inclusive: true})},
     {"name": "range_open", "symbols": [{"literal":"{"}], "postprocess": (data, start) => ({location: {start}, inclusive: false})},
     {"name": "range_close", "symbols": [{"literal":"]"}], "postprocess": (data, start) => ({location: {start}, inclusive: true})},
@@ -298,11 +299,29 @@ const grammar: Grammar = {
     {"name": "regex_flags$ebnf$1", "symbols": [/[gmiyusd]/]},
     {"name": "regex_flags$ebnf$1", "symbols": ["regex_flags$ebnf$1", /[gmiyusd]/], "postprocess": (d) => d[0].concat([d[1]])},
     {"name": "regex_flags", "symbols": ["regex_flags$ebnf$1"], "postprocess": d => d[0].join('')},
-    {"name": "unquoted_value$ebnf$1", "symbols": []},
-    {"name": "unquoted_value$ebnf$1", "symbols": ["unquoted_value$ebnf$1", /[a-zA-Z\.\-_*?@#$]/], "postprocess": (d) => d[0].concat([d[1]])},
-    {"name": "unquoted_value", "symbols": [/[a-zA-Z_*?@#$]/, "unquoted_value$ebnf$1"], "postprocess": d => d[0] + d[1].join('')}
-  ],
-  ParserStart: "main",
+    {"name": "unquoted_value$ebnf$1", "symbols": [{"literal":"-"}], "postprocess": id},
+    {"name": "unquoted_value$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "unquoted_value$ebnf$2", "symbols": [/[0-9]/]},
+    {"name": "unquoted_value$ebnf$2", "symbols": ["unquoted_value$ebnf$2", /[0-9]/], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "unquoted_value$ebnf$3$subexpression$1$ebnf$1", "symbols": [/[0-9]/]},
+    {"name": "unquoted_value$ebnf$3$subexpression$1$ebnf$1", "symbols": ["unquoted_value$ebnf$3$subexpression$1$ebnf$1", /[0-9]/], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "unquoted_value$ebnf$3$subexpression$1", "symbols": [{"literal":"."}, "unquoted_value$ebnf$3$subexpression$1$ebnf$1"]},
+    {"name": "unquoted_value$ebnf$3", "symbols": ["unquoted_value$ebnf$3$subexpression$1"], "postprocess": id},
+    {"name": "unquoted_value$ebnf$3", "symbols": [], "postprocess": () => null},
+    {"name": "unquoted_value$ebnf$4", "symbols": []},
+    {"name": "unquoted_value$ebnf$4", "symbols": ["unquoted_value$ebnf$4", /[a-zA-Z\.\-_*?@#$]/], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "unquoted_value", "symbols": ["unquoted_value$ebnf$1", "unquoted_value$ebnf$2", "unquoted_value$ebnf$3", "unquoted_value$ebnf$4"], "postprocess": 
+        (d) =>
+          (d[0] || "") +
+          d[1].join("") +
+          (d[2] ? "."+d[2][1].join("") : "") +
+          (d[3] || "")
+          },
+    {"name": "unquoted_value$ebnf$5", "symbols": []},
+    {"name": "unquoted_value$ebnf$5", "symbols": ["unquoted_value$ebnf$5", /[0-9a-zA-Z\.\-_*?@#$]/], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "unquoted_value", "symbols": [/[a-zA-Z_*?@#$]/, "unquoted_value$ebnf$5"], "postprocess": d => d[0] + d[1].join('')}
+    ],
+    ParserStart: "main",
 };
 
 export default grammar;
